@@ -1,0 +1,11 @@
+pdb: 2lyz
+
+backup: False
+backup_folder: pastRuns/
+
+
+namd:
+  temperature: 400
+  dcdfreq: 20
+  run: 100
+
