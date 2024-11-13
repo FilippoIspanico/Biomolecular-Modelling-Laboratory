@@ -4,7 +4,8 @@ import math
 import sys
 import time
 import yaml
-
+import seaborn as sns
+import matplotlib.pylab as plt
 
 
 class MDRunner:
@@ -279,8 +280,30 @@ class MDRunner:
         except subprocess.CalledProcessError as e:
             print(f"An error occurred while running VMD: {e}")
 
-    def compute_rmsf(self, plot: bool):
-    
+    def compute_rmsf(self, plot: bool = True, pastRun : str = None):
+        
+        """
+        This function computes the RMSF of the current run or of a past run. It can also visualize such result in a plot comparing it with the one of the original protein
+        """
+
+
+
+        if pastRun is not None:
+            
+            psf_file = "pastRuns/" + pastRun + ".psf"
+            dcd_file = "pastRuns/" + pastRun + ".dcd"
+
+            print(f"Computing rmsf of a past run: {pastRun}")
+        
+        else:
+            
+            psf_file = "proteins/ionized.psf"
+            dcd_file = "simulation_output/result.dcd"
+
+            print(f'Computing rmsf of the current run.')
+
+
+
         f = open("log/rmsf.log", "w")
 
         print("\n####################### RMSF Computing #######################")
@@ -291,7 +314,7 @@ class MDRunner:
                     "vmd",
                     "-dispdev", "text",
                     "-e", "scripts/rmsf.tcl",
-                    # we may want to specify which pdb we want to read... useful for past runs...
+                    "-args",  psf_file, dcd_file
                 ], 
                 stdout=f
             )
@@ -301,7 +324,29 @@ class MDRunner:
             # we may want to map this file to a csv: but we just need to modify tcl file!
 
             if plot:
-                return "Feature not yet implemented"
+                
+                df = pd.read_csv('results/rmsf.csv')
+                df_reference = pd.read_csv(self.yaml_configuration['reference_rmsf'])
+
+                run_name = (self.yaml_configuration["pdb"] + '_' 
+                    +   str(int(self.yaml_configuration["namd"]["run"])/1e6*2) + 'ns_at_' 
+                    +   str(self.yaml_configuration["namd"]["temperature"]) + 'K'
+                    )
+
+                current_rmsf_name = pastRun if pastRun is not None else run_name
+
+                plt.plot( df_reference['idx'],  df_reference['rmsf'])
+                plt.plot( df['idx'], df['rmsf'])
+
+                plt.title(
+                    f'rmsf of {current_rmsf_name}'
+                    )
+
+                plt.legend(labels=['reference rmsf', f'{current_rmsf_name}'])
+                plt.show()
+
+
+
 
       
         except subprocess.CalledProcessError as e:
@@ -346,8 +391,8 @@ class MDRunner:
 
 
 runner = MDRunner()
-runner.prepare_protein()
-runner.write_conf()
-runner.run()
-runner.computeQValue()
-runner.compute_rmsf(False)
+# runner.prepare_protein()
+# runner.write_conf()
+# runner.run()
+# runner.computeQValue()
+runner.compute_rmsf()

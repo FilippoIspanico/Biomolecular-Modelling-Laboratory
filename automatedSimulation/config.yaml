@@ -3,6 +3,8 @@ pdb: 2lyz
 backup: False
 backup_folder: pastRuns/
 
+reference_rmsf: results/2lyz_6ns_at_400K_rmsf.csv
+
 
 namd:
   temperature: 400
