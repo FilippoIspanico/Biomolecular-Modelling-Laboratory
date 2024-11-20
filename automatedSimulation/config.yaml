@@ -1,13 +1,19 @@
-pdb: 2lyz
+pdb: GLY72_2lyz
 
-backup: False
+backup: True
 backup_folder: pastRuns/
 
 reference_rmsf: results/2lyz_6ns_at_400K_rmsf.csv
+change_frequency: ../analysis/data/frequencies_500.csv
 
+
+
+foldX_installation_folder: /home/filippo/Documents/foldx5/foldx5_1Linux64
+reference_sequence:   KVFGRCELAAAMKRHGLDNYRGYSLGNWVCAAKFESNFNTQATNRNTDGSTDYGILQINSRWWCNDGRTPGSRNLCNIPCSALLSSDITASVNCAKKIVSDGNGMNAWVAWRNRCKGTDVQAWIRGCRL
+most_common_sequence: KVFERCELARALKRLGLDGYRGYSLANWVCLAKWESNYNTQATNYNTDGSSTDYGIQQINSWWWCNDGKTPSANNACIICCSLLLSDDITQAVCCAKRVVDDPGGIAAWVAWRNCCQNDDLSWYRGGCZ # the Z means no amminoacid
 
 namd:
-  temperature: 400
-  dcdfreq: 20
-  run: 100
+  temperature: 310
+  dcdfreq: 20 # 2 ps > 1500 
+  run: 1000 # 2ps
 

@@ -7,7 +7,7 @@ Info)    Molecular Dynamics', J. Molec. Graphics 1996, 14.1, 33-38.
 Info) -------------------------------------------------------------
 Info) Multithreading available, 8 CPUs.
 Info)   CPU features: SSE2 SSE4.1 AVX AVX2 FMA F16 HT 
-Info) Free system memory: 11GB (73%)
+Info) Free system memory: 12GB (75%)
 Info) Creating CUDA device pool and initializing hardware...
 Info) Detected 1 available CUDA accelerator::
 Info) [0] NVIDIA GeForce MX250  3 SM_6.1 1.6 GHz, 1.9GB RAM SP32 KT AE2 ZC
@@ -18,27 +18,21 @@ Info) /usr/local/lib/vmd/plugins/LINUXAMD64/molfile
 2.0
 1.7
 1.5
-proteins/2lyz.pdb
-input pdb: proteins/2lyz.pdb
-Info) Using plugin pdb for structure file proteins/2lyz.pdb
-Info) Using plugin pdb for coordinates from file proteins/2lyz.pdb
+proteins/GLY72_2lyz.pdb
+input pdb: proteins/GLY72_2lyz.pdb
+Info) Using plugin pdb for structure file proteins/GLY72_2lyz.pdb
+Info) Using plugin pdb for coordinates from file proteins/GLY72_2lyz.pdb
 Info) Determining bond structure from distance search ...
-Info) Eliminating bonds duplicated from existing structure...
 Info) Analyzing structure ...
-Info)    Atoms: 1102
-Info)    Bonds: 1037
+Info)    Atoms: 999
+Info)    Bonds: 1026
 Info)    Angles: 0  Dihedrals: 0  Impropers: 0  Cross-terms: 0
 Info)    Bondtypes: 0  Angletypes: 0  Dihedraltypes: 0  Impropertypes: 0
-Info)    Residues: 230
-Info)    Waters: 101
-Warning) Unusual bond between residues:  101 (protein) and 228 (waters)
-Warning) Unusual bond between residues:  101 (protein) and 227 (waters)
-Warning) Unusual bond between residues:  121 (protein) and 144 (waters)
-Warning) Unusual bond between residues:  121 (protein) and 143 (waters)
-Warning) Unusual bond between residues:  121 (protein) and 143 (waters)
+Info)    Residues: 129
+Info)    Waters: 0
 Info)    Segments: 1
-Info)    Fragments: 98   Protein: 1   Nucleic: 0
-Info) Finished with coordinate file proteins/2lyz.pdb.
+Info)    Fragments: 1   Protein: 1   Nucleic: 0
+Info) Finished with coordinate file proteins/GLY72_2lyz.pdb.
 0
 loaded input protein successfully
 atomselect0
@@ -48,8 +42,8 @@ Info) Using plugin pdb for structure file proteins/protein.pdb
 Info) Using plugin pdb for coordinates from file proteins/protein.pdb
 Info) Determining bond structure from distance search ...
 Info) Analyzing structure ...
-Info)    Atoms: 1001
-Info)    Bonds: 1032
+Info)    Atoms: 999
+Info)    Bonds: 1026
 Info)    Angles: 0  Dihedrals: 0  Impropers: 0  Cross-terms: 0
 Info)    Bondtypes: 0  Angletypes: 0  Dihedraltypes: 0  Impropertypes: 0
 Info)    Residues: 129
@@ -95,7 +89,7 @@ segment complete.
 psfgen) reading coordinates from pdb file proteins/protein.pdb for segment U
 psfgen) Warning: failed to set coordinate for atom O	 LEU:129	  U
 psfgen) Warning: failed to set coordinate for atom OXT	 LEU:129	  U
-psfgen) Info: guessing coordinates for 969 atoms (2 non-hydrogen)
+psfgen) Info: guessing coordinates for 967 atoms (2 non-hydrogen)
 psfgen) Warning: failed to guess coordinate due to bad angle CB CG HG
 psfgen) Warning: failed to guess coordinate due to bad angle CB CG HG
 psfgen) Warning: failed to guess coordinate due to bad angle CB CG HG
@@ -117,10 +111,10 @@ psfgen) Info: writing pdb file proteins/system.pdb
 psfgen) Info: Atoms with guessed coordinates will have occupancy of 0.0.
 psfgen) Info: pdb file complete.
 psfgen) Info: writing psf file proteins/system.psf
-psfgen) total of 1968 atoms
-psfgen) total of 1988 bonds
-psfgen) total of 3547 angles
-psfgen) total of 5183 dihedrals
+psfgen) total of 1964 atoms
+psfgen) total of 1984 bonds
+psfgen) total of 3540 angles
+psfgen) total of 5171 dihedrals
 psfgen) total of 351 impropers
 psfgen) total of 0 explicit exclusions
 psfgen) total of 0 cross-terms
@@ -131,9 +125,9 @@ Solvating the protein
 Info) Using plugin psf for structure file proteins/system.psf
 psfplugin) no cross-terms defined in PSF file.
 Info) Analyzing structure ...
-Info)    Atoms: 1968
-Info)    Bonds: 1988
-Info)    Angles: 3547  Dihedrals: 5183  Impropers: 351  Cross-terms: 0
+Info)    Atoms: 1964
+Info)    Bonds: 1984
+Info)    Angles: 3540  Dihedrals: 5171  Impropers: 351  Cross-terms: 0
 Info)    Bondtypes: 0  Angletypes: 0  Dihedraltypes: 0  Impropertypes: 0
 Info)    Residues: 129
 Info)    Waters: 0
@@ -146,9 +140,9 @@ Info) Finished with coordinate file proteins/system.pdb.
 Info) Using plugin psf for structure file proteins/system.psf
 psfplugin) no cross-terms defined in PSF file.
 Info) Analyzing structure ...
-Info)    Atoms: 1968
-Info)    Bonds: 1988
-Info)    Angles: 3547  Dihedrals: 5183  Impropers: 351  Cross-terms: 0
+Info)    Atoms: 1964
+Info)    Bonds: 1984
+Info)    Angles: 3540  Dihedrals: 5171  Impropers: 351  Cross-terms: 0
 Info)    Bondtypes: 0  Angletypes: 0  Dihedraltypes: 0  Impropertypes: 0
 Info)    Residues: 129
 Info)    Waters: 0
@@ -164,10 +158,10 @@ psfgen) reading structure from psf file /usr/local/lib/vmd/plugins/noarch/tcl/so
 psfgen) reading coordinates, insertion codes, and element symbols from pdb file /usr/local/lib/vmd/plugins/noarch/tcl/solvate1.7/wat.pdb
 psfgen) psf file does not contain cross-terms
 psfgen) Info: writing psf file combine.psf
-psfgen) total of 29751 atoms
-psfgen) total of 20510 bonds
-psfgen) total of 22069 angles
-psfgen) total of 5183 dihedrals
+psfgen) total of 29747 atoms
+psfgen) total of 20506 bonds
+psfgen) total of 22062 angles
+psfgen) total of 5171 dihedrals
 psfgen) total of 351 impropers
 psfgen) total of 0 explicit exclusions
 psfgen) total of 0 cross-terms
@@ -177,9 +171,9 @@ psfgen) Info: pdb file complete.
 Info) Using plugin psf for structure file combine.psf
 psfplugin) no cross-terms defined in PSF file.
 Info) Analyzing structure ...
-Info)    Atoms: 29751
-Info)    Bonds: 20510
-Info)    Angles: 22069  Dihedrals: 5183  Impropers: 351  Cross-terms: 0
+Info)    Atoms: 29747
+Info)    Bonds: 20506
+Info)    Angles: 22062  Dihedrals: 5171  Impropers: 351  Cross-terms: 0
 Info)    Bondtypes: 0  Angletypes: 0  Dihedraltypes: 0  Impropertypes: 0
 Info)    Residues: 9390
 Info)    Waters: 9261
@@ -214,10 +208,10 @@ psfgen) setting patch for last residue to NONE
 Info: generating structure...
 segment complete.
 psfgen) Info: writing psf file proteins/solvated.psf
-psfgen) total of 10479 atoms
-psfgen) total of 7662 bonds
-psfgen) total of 6384 angles
-psfgen) total of 5183 dihedrals
+psfgen) total of 10478 atoms
+psfgen) total of 7660 bonds
+psfgen) total of 6378 angles
+psfgen) total of 5171 dihedrals
 psfgen) total of 351 impropers
 psfgen) total of 0 explicit exclusions
 psfgen) total of 0 cross-terms
@@ -228,14 +222,14 @@ psfgen) clearing structure, preserving topology and aliases
 Info) Using plugin psf for structure file proteins/solvated.psf
 psfplugin) no cross-terms defined in PSF file.
 Info) Analyzing structure ...
-Info)    Atoms: 10479
-Info)    Bonds: 7662
-Info)    Angles: 6384  Dihedrals: 5183  Impropers: 351  Cross-terms: 0
+Info)    Atoms: 10478
+Info)    Bonds: 7660
+Info)    Angles: 6378  Dihedrals: 5171  Impropers: 351  Cross-terms: 0
 Info)    Bondtypes: 0  Angletypes: 0  Dihedraltypes: 0  Impropertypes: 0
-Info)    Residues: 2966
-Info)    Waters: 2837
+Info)    Residues: 2967
+Info)    Waters: 2838
 Info)    Segments: 2
-Info)    Fragments: 2838   Protein: 1   Nucleic: 0
+Info)    Fragments: 2839   Protein: 1   Nucleic: 0
 Info) Using plugin pdb for coordinates from file proteins/solvated.pdb
 Info) Finished with coordinate file proteins/solvated.pdb.
 Info) Opened coordinate file proteins/solvated.pdb for writing.
@@ -251,17 +245,17 @@ psfgen) psf file does not contain cross-terms
 Info) Using plugin psf for structure file proteins/solvated.psf
 psfplugin) no cross-terms defined in PSF file.
 Info) Analyzing structure ...
-Info)    Atoms: 10479
-Info)    Bonds: 7662
-Info)    Angles: 6384  Dihedrals: 5183  Impropers: 351  Cross-terms: 0
+Info)    Atoms: 10478
+Info)    Bonds: 7660
+Info)    Angles: 6378  Dihedrals: 5171  Impropers: 351  Cross-terms: 0
 Info)    Bondtypes: 0  Angletypes: 0  Dihedraltypes: 0  Impropertypes: 0
-Info)    Residues: 2966
-Info)    Waters: 2837
+Info)    Residues: 2967
+Info)    Waters: 2838
 Info)    Segments: 2
-Info)    Fragments: 2838   Protein: 1   Nucleic: 0
+Info)    Fragments: 2839   Protein: 1   Nucleic: 0
 Info) Using plugin pdb for coordinates from file proteins/solvated.pdb
 Info) Finished with coordinate file proteins/solvated.pdb.
-Autoionize) System net charge before adding ions: 8.000001221895218e.
+Autoionize) System net charge before adding ions: 8.000001236796379e.
 Autoionize) Number of ions required for neutralizing the system: 0 SOD and 8 CLA.
 Autoionize) Ions to be placed:
 Autoionize)   8 CLA
@@ -295,10 +289,10 @@ segment complete.
 Autoionize) Randomizing ion positions...
 Autoionize) Assigning ion coordinates...
 psfgen) Info: writing psf file proteins/ionized.psf
-psfgen) total of 10463 atoms
-psfgen) total of 7646 bonds
-psfgen) total of 6376 angles
-psfgen) total of 5183 dihedrals
+psfgen) total of 10462 atoms
+psfgen) total of 7644 bonds
+psfgen) total of 6370 angles
+psfgen) total of 5171 dihedrals
 psfgen) total of 351 impropers
 psfgen) total of 0 explicit exclusions
 psfgen) total of 0 cross-terms
@@ -309,31 +303,31 @@ Autoionize) Loading new system with added ions...
 Info) Using plugin psf for structure file proteins/ionized.psf
 psfplugin) no cross-terms defined in PSF file.
 Info) Analyzing structure ...
-Info)    Atoms: 10463
-Info)    Bonds: 7646
-Info)    Angles: 6376  Dihedrals: 5183  Impropers: 351  Cross-terms: 0
+Info)    Atoms: 10462
+Info)    Bonds: 7644
+Info)    Angles: 6370  Dihedrals: 5171  Impropers: 351  Cross-terms: 0
 Info)    Bondtypes: 0  Angletypes: 0  Dihedraltypes: 0  Impropertypes: 0
-Info)    Residues: 2966
-Info)    Waters: 2829
+Info)    Residues: 2967
+Info)    Waters: 2830
 Info)    Segments: 3
-Info)    Fragments: 2838   Protein: 1   Nucleic: 0
+Info)    Fragments: 2839   Protein: 1   Nucleic: 0
 Info) Using plugin pdb for coordinates from file proteins/ionized.pdb
 Info) Finished with coordinate file proteins/ionized.pdb.
 Info) Opened coordinate file proteins/ionized.pdb for writing.
 Info) Finished with coordinate file proteins/ionized.pdb.
-Autoionize) System net charge after adding ions: 1.2218952178955078e-6e.
+Autoionize) System net charge after adding ions: 1.2367963790893555e-6e.
 Autoionize) All done.
 Info) Using plugin psf for structure file proteins/ionized.psf
 psfplugin) no cross-terms defined in PSF file.
 Info) Analyzing structure ...
-Info)    Atoms: 10463
-Info)    Bonds: 7646
-Info)    Angles: 6376  Dihedrals: 5183  Impropers: 351  Cross-terms: 0
+Info)    Atoms: 10462
+Info)    Bonds: 7644
+Info)    Angles: 6370  Dihedrals: 5171  Impropers: 351  Cross-terms: 0
 Info)    Bondtypes: 0  Angletypes: 0  Dihedraltypes: 0  Impropertypes: 0
-Info)    Residues: 2966
-Info)    Waters: 2829
+Info)    Residues: 2967
+Info)    Waters: 2830
 Info)    Segments: 3
-Info)    Fragments: 2838   Protein: 1   Nucleic: 0
+Info)    Fragments: 2839   Protein: 1   Nucleic: 0
 8
 Info) Using plugin pdb for coordinates from file proteins/ionized.pdb
 Info) Finished with coordinate file proteins/ionized.pdb.
@@ -346,10 +340,10 @@ atomselect20
 25.000999450683594
 43.99100112915039
 46.516998291015625
-0.7743726372718811 22.10334014892578 19.196044921875
-0.7743726372718811
-22.10334014892578
-19.196044921875
+0.7669743895530701 22.091928482055664 19.19858169555664
+0.7669743895530701
+22.091928482055664
+19.19858169555664
 log/box_measure.csv
 file44
 Output written to log/box_measure.csv

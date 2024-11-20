@@ -6,6 +6,10 @@ import time
 import yaml
 import seaborn as sns
 import matplotlib.pylab as plt
+from sklearn.preprocessing import MinMaxScaler
+from scipy.signal import correlate
+import numpy as np
+
 
 
 class MDRunner:
@@ -218,7 +222,7 @@ class MDRunner:
         
         end_time = time.time()
 
-        print(f"Simulation completed in: {int((start_time - end_time)/60)} mins")
+        print(f"Simulation completed in: {int((end_time - start_time)/60)} mins")
 
 
         if self.yaml_configuration["backup"]:
@@ -326,7 +330,13 @@ class MDRunner:
             if plot:
                 
                 df = pd.read_csv('results/rmsf.csv')
+                
                 df_reference = pd.read_csv(self.yaml_configuration['reference_rmsf'])
+
+                df_frequencies = pd.read_csv(self.yaml_configuration['change_frequency'])
+
+
+
 
                 run_name = (self.yaml_configuration["pdb"] + '_' 
                     +   str(int(self.yaml_configuration["namd"]["run"])/1e6*2) + 'ns_at_' 
@@ -334,23 +344,56 @@ class MDRunner:
                     )
 
                 current_rmsf_name = pastRun if pastRun is not None else run_name
+                
+                
 
-                plt.plot( df_reference['idx'],  df_reference['rmsf'])
-                plt.plot( df['idx'], df['rmsf'])
+               
+                scaler = MinMaxScaler()
+
+
+
+                idx = df_reference['idx'] # this is just a sequence 1:129
+
+                reference_rmsf = np.array(df_reference["rmsf"]).reshape(-1, 1)
+                current_rmsf = np.array(df["rmsf"]).reshape(-1, 1)
+                
+                reference_rmsf = scaler.fit_transform(reference_rmsf)
+                current_rmsf = scaler.fit_transform(current_rmsf)
+
+                frequencies = np.array(df_frequencies["frequency"]).reshape(-1, 1)
+                frequencies = 1 - frequencies
+
+                print(frequencies.shape)
+
+                plt.plot( idx,  reference_rmsf )
+                plt.plot( idx , current_rmsf )
+                plt.plot( idx , frequencies )
+
+                plt.plot( 71*np.ones(100), np.linspace(0, 1, 100), '--')
 
                 plt.title(
-                    f'rmsf of {current_rmsf_name}'
+                    f'scaled rmsf of {current_rmsf_name}'
                     )
 
-                plt.legend(labels=['reference rmsf', f'{current_rmsf_name}'])
+                plt.legend(labels=['reference rmsf', f'{current_rmsf_name}', 'frequencies'])
                 plt.show()
 
-
-
+                cross_corr = correlate(  
+                    frequencies, 
+                    current_rmsf,
+                    mode = "same"
+                )
+                plt.plot(idx, cross_corr)
+                plt.show()
+                print(f'argmax correlation: {np.argmax(cross_corr)}', 
+                      f'\nargmax rmsf: {np.argmax(current_rmsf)}')
+                
+                print(f'at rmsf argmax we have: {self.yaml_configuration["reference_sequence"][np.argmax(current_rmsf)]}')
+                print(f'sequence[81]: {self.yaml_configuration["reference_sequence"][81]}')
 
       
         except subprocess.CalledProcessError as e:
-            print(f"An error occurred while cleaning : {e}")
+            print(f"An error occurred while computing RMSF : {e}")
 
     def write_backup(self):
         
@@ -387,12 +430,11 @@ class MDRunner:
         except subprocess.CalledProcessError as e:
             print(f"An error occurred while cleaning : {e}")
 
-
-
+   
 
 runner = MDRunner()
-# runner.prepare_protein()
-# runner.write_conf()
-# runner.run()
-# runner.computeQValue()
-runner.compute_rmsf()
+#runner.prepare_protein()
+#runner.write_conf()
+#runner.run()
+#runner.computeQValue()
+runner.compute_rmsf(plot=True)
