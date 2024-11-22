@@ -4,7 +4,6 @@ import math
 import sys
 import time
 import yaml
-import seaborn as sns
 import matplotlib.pylab as plt
 from sklearn.preprocessing import MinMaxScaler
 from scipy.signal import correlate
@@ -437,4 +436,4 @@ runner = MDRunner()
 #runner.write_conf()
 #runner.run()
 #runner.computeQValue()
-runner.compute_rmsf(plot=True)
+runner.compute_rmsf(pastRun='GLY72_2lyz_6ns_at_400K' , plot=True)
