@@ -1,4 +1,4 @@
-pdb: GLY72_2lyz
+pdb: GLY72_2lyz # GLY72_2lyz
 
 backup: True
 backup_folder: pastRuns/
@@ -13,7 +13,7 @@ reference_sequence:   KVFGRCELAAAMKRHGLDNYRGYSLGNWVCAAKFESNFNTQATNRNTDGSTDYGILQI
 most_common_sequence: KVFERCELARALKRLGLDGYRGYSLANWVCLAKWESNYNTQATNYNTDGSSTDYGIQQINSWWWCNDGKTPSANNACIICCSLLLSDDITQAVCCAKRVVDDPGGIAAWVAWRNCCQNDDLSWYRGGCZ # the Z means no amminoacid
 
 namd:
-  temperature: 310
-  dcdfreq: 20 # 2 ps > 1500 
-  run: 1000 # 2ps
+  temperature: 350
+  dcdfreq: 5000
+  run: 500000  # 1ns
 

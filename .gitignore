@@ -1,3 +1,10 @@
-automatedSimulation/pastRuns/
-automatedSimulation/simulation_output/
 .idea/
+automatedSimulation/log/*
+automatedSimulation/pastRuns/*
+automatedSimulation/proteins/*
+automatedSimulation/results/*
+automatedSimulation/simulation_output/*
+automatedSimulation/FFTW_NAMD_3.0_Linux-x86_64-multicore.txt
+automatedSimulation/autoSimulation.conf
+
+

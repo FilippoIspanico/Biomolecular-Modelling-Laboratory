@@ -14,8 +14,7 @@ import numpy as np
 class MDRunner:
 
     def __init__(self, yaml_configuration_path: str = "config.yaml"):
-        
-        
+
         try: 
             config_file = open(yaml_configuration_path, "r")
             self.yaml_configuration = yaml.safe_load(config_file)
@@ -23,10 +22,9 @@ class MDRunner:
         except:
             print(f'Cannot open input file: {yaml_configuration_path}')
 
-
         run_time = self.yaml_configuration["namd"]["run"]
         dcdfreq = self.yaml_configuration["namd"]["dcdfreq"]
-        self.QValue_frame = run_time/dcdfreq # we need to check this
+        self.QValue_frame = run_time/dcdfreq
 
     def prepare_protein(self):
     
@@ -54,14 +52,16 @@ class MDRunner:
 
         f.close()
 
-    def compute_box_size(self):
+    @staticmethod
+    def compute_box_size():
         df = pd.read_csv('log/box_measure.csv')
-        x =  math.ceil(df["max_x"][0] - df["min_x"][0])
+        x = math.ceil(df["max_x"][0] - df["min_x"][0])
         y = math.ceil(df["max_y"][0] - df["min_y"][0])
         z = math.ceil(df["max_z"][0] - df["min_z"][0])
         return x, y, z
 
-    def compute_center(self):
+    @staticmethod
+    def compute_center():
         df = pd.read_csv('log/box_measure.csv')
         x = df['center_x'][0]
         y = df['center_y'][0]
@@ -230,7 +230,7 @@ class MDRunner:
     def computeQValue(self):
         
 
-        frame_arg =  self.QValue_frame
+        frame_arg = self.QValue_frame
 
 
         print("\n####################### Q-VALUE #######################")
@@ -254,8 +254,10 @@ class MDRunner:
             
             fin = open('log/native_contacts.txt', 'r')
 
+            # Reading results from tcl process: qvalue.tcl
+            qvalue = 0
+            fraction = 0
 
-            # Reading results from tcl process: qvalue.tcl        
             for line in fin:
                 qvalue = line.split(',')[0]
                 fraction = line.split(',')[1]
@@ -264,11 +266,11 @@ class MDRunner:
             # Writing those result in a csv file along with other information
             fout = open('results/qvalues.csv', 'a')
             fout.write(
-                self.yaml_configuration["pdb"]+','  +
+                self.yaml_configuration["pdb"] + ',' +
                 str(self.yaml_configuration["namd"]["temperature"]) + ',' +
-                str(int(self.yaml_configuration["namd"]["run"])*2/1e6)  + ','  +
-                qvalue + ',' +
-                fraction + '\n' 
+                str(int(self.yaml_configuration["namd"]["run"])*2/1e6) + ',' +
+                str(qvalue) + ',' +
+                str(fraction) + '\n'
                 )
             fout.close()
 
@@ -432,8 +434,8 @@ class MDRunner:
    
 
 runner = MDRunner()
-#runner.prepare_protein()
-#runner.write_conf()
-#runner.run()
-#runner.computeQValue()
-runner.compute_rmsf(pastRun='GLY72_2lyz_6ns_at_400K' , plot=True)
+runner.prepare_protein()
+runner.write_conf()
+runner.run()
+runner.computeQValue()
+runner.compute_rmsf(plot=True)
