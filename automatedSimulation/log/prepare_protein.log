@@ -7,7 +7,7 @@ Info)    Molecular Dynamics', J. Molec. Graphics 1996, 14.1, 33-38.
 Info) -------------------------------------------------------------
 Info) Multithreading available, 8 CPUs.
 Info)   CPU features: SSE2 SSE4.1 AVX AVX2 FMA F16 HT 
-Info) Free system memory: 11GB (70%)
+Info) Free system memory: 13GB (85%)
 Info) Creating CUDA device pool and initializing hardware...
 Info) Detected 1 available CUDA accelerator::
 Info) [0] NVIDIA GeForce MX250  3 SM_6.1 1.6 GHz, 1.9GB RAM SP32 KT AE2 ZC
@@ -340,10 +340,10 @@ atomselect20
 25.000999450683594
 43.99100112915039
 46.516998291015625
-0.7569645047187805 22.092365264892578 19.19468116760254
-0.7569645047187805
-22.092365264892578
-19.19468116760254
+0.7752367854118347 22.099365234375 19.19830322265625
+0.7752367854118347
+22.099365234375
+19.19830322265625
 log/box_measure.csv
 file44
 Output written to log/box_measure.csv
