@@ -1,4 +1,5 @@
 .idea/
+analysis/.idea/
 automatedSimulation/log/*
 automatedSimulation/pastRuns/*
 automatedSimulation/proteins/*
