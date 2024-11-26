@@ -15,7 +15,7 @@ most_common_sequence: KVFERCELARALKRLGLDGYRGYSLANWVCLAKWESNYNTQATNYNTDGSSTDYGIQQ
 namd:
   temperature: 313
   dcdfreq: 5000
-  run: 1000000  # 2ns
+  run: 100
 
 blast:
   email: filippo.mininno@mail.polimi.it

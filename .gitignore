@@ -7,5 +7,7 @@ automatedSimulation/results/*
 automatedSimulation/simulation_output/*
 automatedSimulation/FFTW_NAMD_3.0_Linux-x86_64-multicore.txt
 automatedSimulation/autoSimulation.conf
+automatedSimulation/config.yaml
+automatedSimulation/main.py
 
 
