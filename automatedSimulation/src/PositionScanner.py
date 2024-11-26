@@ -178,7 +178,7 @@ class BLAST:
         return self.scores(protein_sequence=self.fasta_string, similar_sequences=self.sequences)
 
 
-blast = BLAST("config.yaml")
+blast = BLAST("../config.yaml")
 #blast.execute()
 scores = blast.get_scores()
 plt.plot(scores)

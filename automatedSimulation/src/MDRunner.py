@@ -410,9 +410,3 @@ class MDRunner:
             print(f"An error occurred while cleaning : {e}")
 
 
-runner = MDRunner()
-#runner.prepare_protein()
-#runner.write_conf()
-#runner.run()
-#runner.computeQValue()
-runner.compute_rmsf(plot=True, scale=True)
