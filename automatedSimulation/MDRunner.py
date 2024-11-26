@@ -10,30 +10,29 @@ from scipy.signal import correlate
 import numpy as np
 
 
-
 class MDRunner:
 
     def __init__(self, yaml_configuration_path: str = "config.yaml"):
 
-        try: 
+        try:
             config_file = open(yaml_configuration_path, "r")
             self.yaml_configuration = yaml.safe_load(config_file)
-        
+
         except:
             print(f'Cannot open input file: {yaml_configuration_path}')
 
         run_time = self.yaml_configuration["namd"]["run"]
         dcdfreq = self.yaml_configuration["namd"]["dcdfreq"]
-        self.QValue_frame = run_time/dcdfreq
+        self.QValue_frame = run_time / dcdfreq
 
     def prepare_protein(self):
-    
+
         f = open("log/prepare_protein.log", "w")
 
         protein = self.yaml_configuration["pdb"]
 
         print("####################### Protein cleaning #######################")
-        print(f"Input pdb: { protein }")
+        print(f"Input pdb: {protein}")
         print("Log at: log/prepare_protein.log")
         try:
             subprocess.run(
@@ -42,11 +41,11 @@ class MDRunner:
                     "-dispdev", "text",
                     "-e", "scripts/prepare_protein.tcl",
                     "-args", "proteins/" + protein + ".pdb"
-                ], 
+                ],
                 stdout=f
             )
             print("Protein cleaned successfully!")
-        
+
         except subprocess.CalledProcessError as e:
             print(f"An error occurred while cleaning : {e}")
 
@@ -73,7 +72,6 @@ class MDRunner:
         x, y, z = self.compute_box_size()
 
         xx, yy, zz = self.compute_center()
-
 
         conf = f"""
     #############################################################
@@ -190,8 +188,7 @@ class MDRunner:
 
     """
 
-        
-        with open("autoSimulation.conf","w") as f:
+        with open("autoSimulation.conf", "w") as f:
             f.writelines(conf)
 
     def run(self):
@@ -204,34 +201,30 @@ class MDRunner:
         print(yaml.dump(self.yaml_configuration["namd"], allow_unicode=True, default_flow_style=False))
         print("Simulating...")
 
-        
-        start_time = time.time() 
+        start_time = time.time()
 
         try:
             subprocess.run(
                 [
-                    "namd3", "+p8", 
+                    "namd3", "+p8",
                     "autoSimulation.conf",
-                ], 
+                ],
                 stdout=f
             )
 
         except subprocess.CalledProcessError as e:
             print(f"An error occurred while running the simulation: {e}")
-        
+
         end_time = time.time()
 
-        print(f"Simulation completed in: {int((end_time - start_time)/60)} mins")
-
+        print(f"Simulation completed in: {int((end_time - start_time) / 60)} mins")
 
         if self.yaml_configuration["backup"]:
             self.write_backup()
 
     def computeQValue(self):
-        
 
         frame_arg = self.QValue_frame
-
 
         print("\n####################### Q-VALUE #######################")
         print(f"Frame at which we are computing Q-value: {frame_arg}")
@@ -239,19 +232,17 @@ class MDRunner:
         print("Computing Q-value...")
         f = open("log/Qvalue.log", "w")
 
-
         command = [
             "vmd", "proteins/ionized.psf", "simulation_output/result.dcd",
             "-dispdev", "text",
             "-e", "scripts/qvalue.tcl",
             "-args", str(frame_arg)
-        ] 
-
+        ]
 
         try:
             # Run the VMD command
-            subprocess.run(command, check=True,  stdout=f)
-            
+            subprocess.run(command, check=True, stdout=f)
+
             fin = open('log/native_contacts.txt', 'r')
 
             # Reading results from tcl process: qvalue.tcl
@@ -268,14 +259,12 @@ class MDRunner:
             fout.write(
                 self.yaml_configuration["pdb"] + ',' +
                 str(self.yaml_configuration["namd"]["temperature"]) + ',' +
-                str(int(self.yaml_configuration["namd"]["run"])*2/1e6) + ',' +
+                str(int(self.yaml_configuration["namd"]["run"]) * 2 / 1e6) + ',' +
                 str(qvalue) + ',' +
                 str(fraction) + '\n'
-                )
+            )
             fout.close()
 
-
-            
             print(f"Computed a Q-value    of : {qvalue}")
             print(f"Computed a Q-value(%) of : {fraction}")
             print("Log at: log/Qvalue.log and log/native_contacts.txt")
@@ -285,28 +274,27 @@ class MDRunner:
         except subprocess.CalledProcessError as e:
             print(f"An error occurred while running VMD: {e}")
 
-    def compute_rmsf(self, plot: bool = True, pastRun : str = None):
-        
-        """
-        This function computes the RMSF of the current run or of a past run. It can also visualize such result in a plot comparing it with the one of the original protein
+    def compute_rmsf(self, plot: bool = True, pastRun: str = None, scale: bool = False):
+
         """
 
+        This function computes the RMSF of the current run or of a past run. It can also visualize such result in a
+        plot comparing it with the one of the original protein
 
+        """
 
         if pastRun is not None:
-            
+
             psf_file = "pastRuns/" + pastRun + ".psf"
             dcd_file = "pastRuns/" + pastRun + ".dcd"
 
             print(f"Computing rmsf of a past run: {pastRun}")
-        
         else:
-            
+
             psf_file = "proteins/ionized.psf"
             dcd_file = "simulation_output/result.dcd"
 
             print(f'Computing rmsf of the current run.')
-
 
 
         f = open("log/rmsf.log", "w")
@@ -319,94 +307,84 @@ class MDRunner:
                     "vmd",
                     "-dispdev", "text",
                     "-e", "scripts/rmsf.tcl",
-                    "-args",  psf_file, dcd_file
-                ], 
+                    "-args", psf_file, dcd_file
+                ],
                 stdout=f
             )
             print("RMSF computed successfully! ")
             print("You can find the result at: result/rmsf.csv")
 
-            # we may want to map this file to a csv: but we just need to modify tcl file!
-
             if plot:
-                
+
+
                 df = pd.read_csv('results/rmsf.csv')
-                
-                df_reference = pd.read_csv(self.yaml_configuration['reference_rmsf'])
 
-                df_frequencies = pd.read_csv(self.yaml_configuration['change_frequency'])
+                # df_reference = pd.read_csv(self.yaml_configuration['reference_rmsf'])
 
+                # df_frequencies = pd.read_csv(self.yaml_configuration['change_frequency'])
 
-
-
-                run_name = (self.yaml_configuration["pdb"] + '_' 
-                    +   str(int(self.yaml_configuration["namd"]["run"])/1e6*2) + 'ns_at_' 
-                    +   str(self.yaml_configuration["namd"]["temperature"]) + 'K'
-                    )
+                run_name = (self.yaml_configuration["pdb"] + '_'
+                            + str(int(self.yaml_configuration["namd"]["run"]) / 1e6 * 2) + 'ns_at_'
+                            + str(self.yaml_configuration["namd"]["temperature"]) + 'K'
+                            )
 
                 current_rmsf_name = pastRun if pastRun is not None else run_name
-                
-                
-
-               
-                scaler = MinMaxScaler()
 
 
-
-                idx = df_reference['idx'] # this is just a sequence 1:129
-
-                reference_rmsf = np.array(df_reference["rmsf"]).reshape(-1, 1)
                 current_rmsf = np.array(df["rmsf"]).reshape(-1, 1)
-                
-                reference_rmsf = scaler.fit_transform(reference_rmsf)
-                current_rmsf = scaler.fit_transform(current_rmsf)
 
-                frequencies = np.array(df_frequencies["frequency"]).reshape(-1, 1)
-                frequencies = 1 - frequencies
 
-                print(frequencies.shape)
+                if scale:
+                    scaler = MinMaxScaler()
+                    current_rmsf = scaler.fit_transform(current_rmsf)
+                # idx = df_reference['idx']  # this is just a sequence 1:129
+                # reference_rmsf = np.array(df_reference["rmsf"]).reshape(-1, 1)
+                # reference_rmsf = scaler.fit_transform(reference_rmsf)
 
-                plt.plot( idx,  reference_rmsf )
-                plt.plot( idx , current_rmsf )
-                plt.plot( idx , frequencies )
+                # frequencies = np.array(df_frequencies["frequency"]).reshape(-1, 1)
+                # frequencies = 1 - frequencies
 
-                plt.plot( 71*np.ones(100), np.linspace(0, 1, 100), '--')
+                # print(frequencies.shape)
+                #
+                # plt.plot(reference_rmsf)
+                plt.plot(current_rmsf)
+                # plt.plot(frequencies)
+
+                plt.plot(71 * np.ones(100), np.linspace(0, 1, 100), '--')
 
                 plt.title(
-                    f'scaled rmsf of {current_rmsf_name}'
-                    )
+                    f'{"scaled" if scale else ""}rmsf of {current_rmsf_name}'
+                )
 
                 plt.legend(labels=['reference rmsf', f'{current_rmsf_name}', 'frequencies'])
                 plt.show()
 
-                cross_corr = correlate(  
-                    frequencies, 
-                    current_rmsf,
-                    mode = "same"
-                )
-                plt.plot(idx, cross_corr)
-                plt.show()
-                print(f'argmax correlation: {np.argmax(cross_corr)}', 
-                      f'\nargmax rmsf: {np.argmax(current_rmsf)}')
-                
-                print(f'at rmsf argmax we have: {self.yaml_configuration["reference_sequence"][np.argmax(current_rmsf)]}')
-                print(f'sequence[81]: {self.yaml_configuration["reference_sequence"][81]}')
+                # cross_corr = correlate(
+                #     frequencies,
+                #     current_rmsf,
+                #     mode="same"
+                # )
+                # plt.plot( cross_corr)
+                # plt.show()
+                # print(f'argmax correlation: {np.argmax(cross_corr)}',
+                #       f'\nargmax rmsf: {np.argmax(current_rmsf)}')
+                #
+                # print(
+                #  f'at rmsf argmax we have: {self.yaml_configuration["reference_sequence"][np.argmax(current_rmsf)]}')
+                # print(f'sequence[81]: {self.yaml_configuration["reference_sequence"][81]}')
 
-      
+
         except subprocess.CalledProcessError as e:
             print(f"An error occurred while computing RMSF : {e}")
 
     def write_backup(self):
-        
 
-        run_name = (self.yaml_configuration["pdb"] + '_' 
-        +   str(int(self.yaml_configuration["namd"]["run"])/1e6*2) + 'ns_at_' 
-        +   str(self.yaml_configuration["namd"]["temperature"]) + 'K'
-        )
+        run_name = (self.yaml_configuration["pdb"] + '_'
+                    + str(int(self.yaml_configuration["namd"]["run"]) / 1e6 * 2) + 'ns_at_'
+                    + str(self.yaml_configuration["namd"]["temperature"]) + 'K'
+                    )
         run_name = self.yaml_configuration["backup_folder"] + run_name
         print(f"Writing backup as: {run_name}")
-
-
 
         try:
             subprocess.run(
@@ -414,7 +392,7 @@ class MDRunner:
                     "cp",
                     "proteins/ionized.psf",
                     run_name + '.psf'
-                    
+
                 ]
             )
 
@@ -423,19 +401,18 @@ class MDRunner:
                     "cp",
                     "simulation_output/result.dcd",
                     run_name + '.dcd'
-                    
+
                 ]
             )
             print("Protein cleaned successfully!")
-        
+
         except subprocess.CalledProcessError as e:
             print(f"An error occurred while cleaning : {e}")
 
-   
 
 runner = MDRunner()
-runner.prepare_protein()
-runner.write_conf()
-runner.run()
-runner.computeQValue()
-runner.compute_rmsf(plot=True)
+#runner.prepare_protein()
+#runner.write_conf()
+#runner.run()
+#runner.computeQValue()
+runner.compute_rmsf(plot=True, scale=True)
