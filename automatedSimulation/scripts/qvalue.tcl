@@ -1,7 +1,7 @@
 source scripts/VMDextensions.tcl
 
 ## The atom selection
-set protein [atomselect top "protein"]
+set protein [atomselect top "protein and name CA"]
 
 
 set end_frame [lindex $argv 0]
@@ -21,13 +21,22 @@ $protein frame $end_frame
 set nc [measureNativeContacts $ref 7 $protein] 
 puts "There are $nc contacts in the last frame"
 
-set qnc [ expr 100.0 * $nc / $nnc ]
+# set qnc [ expr 100.0 * $nc / $nnc ]
 
+set outfile [open "log/native_contact.csv" w]
 
-## Write the end contacts to a file
-set output_file "log/native_contacts.txt"
-set outfile [open $output_file w]
-puts $outfile "$nc, $qnc"  ;# Write the number of contacts at the top
+puts $outfile "frame,nc,qnc"
+
+              # Now, for each frame,
+forFrames fno $protein {
+               # compute number of native contacts,
+         set nc [measureNativeContacts $ref 7 $protein]
+               # their fraction,
+         set qnc [ expr 100.0 * $nc / $nnc ]
+               # and print both.
+         puts $outfile "$fno, $nc, $qnc"
+ }
+
 
 close $outfile
 exit

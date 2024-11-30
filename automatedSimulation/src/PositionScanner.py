@@ -4,6 +4,7 @@ from Bio import Blast
 import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
 import yaml
+from pathlib import Path
 
 
 class PositionScanner:
@@ -55,7 +56,7 @@ class PositionScanner:
 
     def foldX_scan(self, a: int, b: int):
         """
-        This function uses foldex PositionScan to scan the position in [a, b] and returns the best one. 
+        This function uses foldex PositionScan to scan the position in [a, b] and returns the best ones.
         FoldX only work if the protein to be mutated resides in the same folder of such program. 
         For this reason in this function we will first copy the current pdb (specified in the yaml file) into such folder, 
         and then run PositionScan. We will also need to modify the configuration file. Due to the large number of files produced by FoldX, 
@@ -96,20 +97,26 @@ class BLAST:
     def __init__(self, yaml_configuration_path: str):
 
         config_file = open(yaml_configuration_path, "r")
-
         self.yaml_configuration = yaml.safe_load(config_file)
+
         self.fasta_string = self.yaml_configuration["blast"]["fasta_query"]
         self.alignments = self.yaml_configuration["blast"]["alignments"]
 
-        self.blast_output_filename: str = f"log/blast_{self.alignments}.xml"
-        self.sequences: list[str] = []
 
+        log_folder: Path = Path("log/BLAST/")
+        self.blast_output_filename: Path = log_folder / f"blast_{self.alignments}.xml"
+
+        self.sequences: list[str] = []
         Blast.email = self.yaml_configuration["blast"]["email"]
 
     def execute(self):
-        print("waiting blast query...")
-        print(self.fasta_string)
-        print(self.alignments)
+        print(f"""Executing blast query. 
+        Number of expected results: {self.alignments}
+        """)
+
+
+        print("Waiting for blast query ...")
+
 
         result_stream = Blast.qblast("blastp", "nr", self.fasta_string, hitlist_size=self.alignments)
 
@@ -177,10 +184,18 @@ class BLAST:
         self.get_sequences()
         return self.scores(protein_sequence=self.fasta_string, similar_sequences=self.sequences)
 
+    def write_scores(self):
+        write_folder: Path = Path(self.yaml_configuration["blast"]["write_folder"])
+        scores_file: Path = write_folder / "positions_scores.csv"
 
-blast = BLAST("../config.yaml")
-#blast.execute()
-scores = blast.get_scores()
-plt.plot(scores)
-plt.show()
+        scores = self.get_scores()
+
+        fout = open(scores_file, 'w')
+        fout.write("idx,score\n")
+
+        for idx, score in enumerate(scores):
+            fout.write(f"{idx+1},{score}\n")
+
+
+        fout.close()
 

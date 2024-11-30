@@ -8,6 +8,8 @@ import matplotlib.pylab as plt
 from sklearn.preprocessing import MinMaxScaler
 from scipy.signal import correlate
 import numpy as np
+from pathlib import Path
+import pandas as pd
 
 
 class MDRunner:
@@ -222,9 +224,21 @@ class MDRunner:
         if self.yaml_configuration["backup"]:
             self.write_backup()
 
-    def computeQValue(self):
+    def computeQValue(self, past_run: str = None, plot = False):
 
         frame_arg = self.QValue_frame
+
+        if past_run is not None:
+            print(f"Computing Q-Value for past_run: {past_run}")
+            dcd = past_run + ".dcd"
+            psf = past_run + ".psf"
+
+        else:
+
+            dcd = "simulation_output/result.dcd"
+            psf = "proteins/ionized.psf"
+
+
 
         print("\n####################### Q-VALUE #######################")
         print(f"Frame at which we are computing Q-value: {frame_arg}")
@@ -233,7 +247,7 @@ class MDRunner:
         f = open("log/Qvalue.log", "w")
 
         command = [
-            "vmd", "proteins/ionized.psf", "simulation_output/result.dcd",
+            "vmd", psf , dcd,
             "-dispdev", "text",
             "-e", "scripts/qvalue.tcl",
             "-args", str(frame_arg)
@@ -267,8 +281,15 @@ class MDRunner:
 
             print(f"Computed a Q-value    of : {qvalue}")
             print(f"Computed a Q-value(%) of : {fraction}")
-            print("Log at: log/Qvalue.log and log/native_contacts.txt")
+            print("Log at: log/Qvalue.log and log/native_contacts.csv")
             print("Result written at: results/qvalues.csv")
+
+            if plot:
+                df = pd.read_csv('log/native_contact.csv')
+                print(df.columns)
+                plt.plot(df["qnc"])
+                plt.show()
+
 
             # return qvalue # if we want to use it again...
         except subprocess.CalledProcessError as e:
@@ -319,10 +340,6 @@ class MDRunner:
 
                 df = pd.read_csv('results/rmsf.csv')
 
-                # df_reference = pd.read_csv(self.yaml_configuration['reference_rmsf'])
-
-                # df_frequencies = pd.read_csv(self.yaml_configuration['change_frequency'])
-
                 run_name = (self.yaml_configuration["pdb"] + '_'
                             + str(int(self.yaml_configuration["namd"]["run"]) / 1e6 * 2) + 'ns_at_'
                             + str(self.yaml_configuration["namd"]["temperature"]) + 'K'
@@ -337,18 +354,9 @@ class MDRunner:
                 if scale:
                     scaler = MinMaxScaler()
                     current_rmsf = scaler.fit_transform(current_rmsf)
-                # idx = df_reference['idx']  # this is just a sequence 1:129
-                # reference_rmsf = np.array(df_reference["rmsf"]).reshape(-1, 1)
-                # reference_rmsf = scaler.fit_transform(reference_rmsf)
 
-                # frequencies = np.array(df_frequencies["frequency"]).reshape(-1, 1)
-                # frequencies = 1 - frequencies
-
-                # print(frequencies.shape)
-                #
-                # plt.plot(reference_rmsf)
                 plt.plot(current_rmsf)
-                # plt.plot(frequencies)
+
 
                 plt.plot(71 * np.ones(100), np.linspace(0, 1, 100), '--')
 
@@ -359,19 +367,6 @@ class MDRunner:
                 plt.legend(labels=['reference rmsf', f'{current_rmsf_name}', 'frequencies'])
                 plt.show()
 
-                # cross_corr = correlate(
-                #     frequencies,
-                #     current_rmsf,
-                #     mode="same"
-                # )
-                # plt.plot( cross_corr)
-                # plt.show()
-                # print(f'argmax correlation: {np.argmax(cross_corr)}',
-                #       f'\nargmax rmsf: {np.argmax(current_rmsf)}')
-                #
-                # print(
-                #  f'at rmsf argmax we have: {self.yaml_configuration["reference_sequence"][np.argmax(current_rmsf)]}')
-                # print(f'sequence[81]: {self.yaml_configuration["reference_sequence"][81]}')
 
 
         except subprocess.CalledProcessError as e:
@@ -409,4 +404,5 @@ class MDRunner:
         except subprocess.CalledProcessError as e:
             print(f"An error occurred while cleaning : {e}")
 
+    # def compareQValue(self, run_a: str = None, run_b: str = None):
 
