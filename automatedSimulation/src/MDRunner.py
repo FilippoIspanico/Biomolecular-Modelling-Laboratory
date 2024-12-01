@@ -230,8 +230,8 @@ class MDRunner:
 
         if past_run is not None:
             print(f"Computing Q-Value for past_run: {past_run}")
-            dcd = past_run + ".dcd"
-            psf = past_run + ".psf"
+            dcd = "pastRuns/" + past_run + ".dcd"
+            psf = "pastRuns/" + past_run + ".psf"
 
         else:
 
@@ -247,7 +247,7 @@ class MDRunner:
         f = open("log/Qvalue.log", "w")
 
         command = [
-            "vmd", psf , dcd,
+            "vmd", psf, dcd,
             "-dispdev", "text",
             "-e", "scripts/qvalue.tcl",
             "-args", str(frame_arg)
@@ -257,16 +257,12 @@ class MDRunner:
             # Run the VMD command
             subprocess.run(command, check=True, stdout=f)
 
-            fin = open('log/native_contacts.txt', 'r')
+            df_qvalues = pd.read_csv('log/native_contact.csv')
 
             # Reading results from tcl process: qvalue.tcl
-            qvalue = 0
-            fraction = 0
+            qvalue = df_qvalues["nc"].iloc[-1]
+            fraction = df_qvalues["qnc"].iloc[-1]
 
-            for line in fin:
-                qvalue = line.split(',')[0]
-                fraction = line.split(',')[1]
-            fin.close()
 
             # Writing those result in a csv file along with other information
             fout = open('results/qvalues.csv', 'a')
