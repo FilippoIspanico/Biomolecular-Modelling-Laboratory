@@ -1,95 +1,119 @@
-import re
 import pandas as pd
 from Bio import Blast
 import xml.etree.ElementTree as ET
-import matplotlib.pyplot as plt
 import yaml
 from pathlib import Path
+import subprocess
+import os
+from src.utils import pdb2fasta
+import glob
 
 
 class PositionScanner:
 
-    def __init__(self, yaml_configuration_path: str = "config.yaml"):
+    def __init__(self, yaml_configuration_path: str, pdb_name: str, fasta_sequence: str, eps: float = -0.4):
 
-        try:
-            config_file = open(yaml_configuration_path, "r")
-            self.yaml_configuration = yaml.safe_load(config_file)
-            self.pdb: str = self.yaml_configuration["pdb"]
+        config_file = open(yaml_configuration_path, "r")
+        self.yaml_configuration = yaml.safe_load(config_file)
 
-            print("Inizialing Position Scanner: ")
-            print(f"Current pdb: {self.pdb}")
+        self.foldX_program: Path = Path(self.yaml_configuration["foldX"]["program_path"])
 
-        except:
-            print(f'Cannot open input file: {yaml_configuration_path}')
+        if not self.foldX_program.exists():
+            print(f"Can't find foldX at the indicated directory: {self.foldX_program}")
+        else:
+            print(f"Found foldX at the indicated directory: {self.foldX_program}")
 
-    class Mutation:
+        self.pdb_name: str = pdb_name
+        self.fasta_sequence: str = fasta_sequence
+        self.temperature: int = self.yaml_configuration["foldX"]["temperature"]
 
+        self.log_path: Path = Path('log/foldX/')
+        self.log_path.mkdir(parents=True, exist_ok=True)
+
+        self.log_file_path = self.log_path / 'foldX.log'
+
+        self.output_dir: Path = self.log_path / 'output/'
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+
+        self.rotabase_dir = self.output_dir / "rotabase.txt"
+
+        self.pdb_dir: Path = Path('proteins')
+        self.pdb_dir.mkdir(parents=True, exist_ok=True)
+
+        self.eps = eps
+
+    def foldX_scan(self, positions: list[int]):
         """
-        This class represents a mutation: an aminoacid in a specific position.
-        """
-
-        def __init__(self, position: int, amino_acid: str):
-            if len(amino_acid) != 1:
-                raise ValueError('Not valid amino_acid input: please use one letter code for specifing the aminoacid')
-
-            self.position = position
-
-            self.amino_acid = amino_acid
-
-        def __init__(self, foldX_name: str):
-            self.position, self.amino_acid = self.toSequence(foldX_name)
-
-        def toFoldX(self):
-            """
-            Return the mutation in FoldX format i.e. amino_acid + "A" + position
-            """
-            return self.amino_acid + "A" + str(self.position)
-
-        def __repr__(self):
-            return f"({self.position}, {self.amino_acid})"
-
-        def toSequence(self, foldX_name):
-            amino_acid = foldX_name[-1]
-            position = re.findall(r'\d+', foldX_name)
-
-            return position[0], amino_acid
-
-    def foldX_scan(self, a: int, b: int):
-        """
-        This function uses foldex PositionScan to scan the position in [a, b] and returns the best ones.
+        This function uses foldex PositionScan to scan the input positions and returns the best ones.
         FoldX only work if the protein to be mutated resides in the same folder of such program. 
         For this reason in this function we will first copy the current pdb (specified in the yaml file) into such folder, 
         and then run PositionScan. We will also need to modify the configuration file. Due to the large number of files produced by FoldX, 
         each time the program is called (which is b-a) the produced files will be removed. Once the best position has been identified 
         """
 
-    def parse_FXPositionScan_output(self, epsilon: float):
-        """
-        This method parses PositionsCan output file. It returns mutations that:
-        1. have a negative energy gain. In particular energy_gain<=epsilon 
-        2. have a negative energy gain but epislon<energy_gain<0 and the proposed aminoacid in that position is the most common one (for that position). 
-        """
+        fasta_sequence: str = pdb2fasta(f"proteins/{self.pdb_name}.pdb")
+        mutations: str = ""
 
-        scanning_output_name = "/PS_" + self.pdb + "_scanning_output.txt"
-        scanning_output_name = self.yaml_configuration["foldX_installation_folder"] + scanning_output_name
+        for position in positions:
+            mutations = mutations + f"{fasta_sequence[position]}A{position+1}a,"
 
-        # scanning_output = open(scanning_output_name)
+        if len(positions) > 0:
 
-        scanning_output = pd.read_csv(scanning_output_name, header=None, sep="\t")
-        scanning_output.columns = ["Mutation", "EnergyGain"]
+            mutations = mutations[:-1]  # we remove the hanging comma
 
-        mask = scanning_output["EnergyGain"] < epsilon
+            f = open(self.log_file_path, 'w')
 
-        for idx, foldXmutation in enumerate(scanning_output["Mutation"]):
-            print(idx, foldXmutation)
-            if foldXmutation[-1] == self.yaml_configuration["most_common_sequence"][idx]:
-                mask[idx] = True
+            subprocess.run(
+                [self.foldX_program,
+                 "--command=PositionScan",
+                 f"--pdb-dir={self.pdb_dir}",
+                 f"--output-dir={self.output_dir}",
+                 f"--rotabaseLocation={self.rotabase_dir}",
+                 f"--pdb={self.pdb_name}.pdb",
+                 f"--positions={mutations}",
+                 f"--temperature={self.temperature}",
+                 "--screen=false"  # this option suppress the verbose mode
 
-        result = []
-        for mutation in scanning_output[mask]["Mutation"]:
-            result.append(self.Mutation(foldX_name=mutation))
+                 ],
+                stdout=f,
+                stderr=subprocess.STDOUT
+            )
 
-        print(result)
+    def parse_scan(self):
+
+        aa3to1 = {
+            'ALA': 'A', 'VAL': 'V', 'PHE': 'F', 'PRO': 'P', 'MET': 'M',
+            'ILE': 'I', 'LEU': 'L', 'ASP': 'D', 'GLU': 'E', 'LYS': 'K',
+            'ARG': 'R', 'SER': 'S', 'THR': 'T', 'TYR': 'Y', 'HIS': 'H',
+            'CYS': 'C', 'ASN': 'N', 'GLN': 'Q', 'TRP': 'W', 'GLY': 'G'
+        }
+
+        aa1to3 = {v: k for k, v in aa3to1.items()}
+
+        output_file: Path = self.output_dir / f"PS_{self.pdb_name}_scanning_output.txt"
+        df = pd.read_table(output_file, header=None)
+        df.columns = ["mutation", "energy"]
+        potential_mutations = df[df["energy"] < self.eps]
+
+        # first 4 char indicates the initial aminoacid
+        # the last char indicates the mutation amino acid
+        # the remaining part indicates the position
+
+
+        for mutation in potential_mutations["mutation"]:
+            amino_acid = mutation[-1]
+            position = mutation[4:-1]
+            mutation_filename = f"{aa1to3[amino_acid]}{position}_{self.pdb_name}.pdb"
+            if os.path.exists(mutation_filename):
+                os.rename(mutation_filename, f"proteins/{mutation_filename}")
+
+        pattern = "*.pdb"
+        for file_path in glob.glob(pattern):
+            os.remove(file_path)
+
+        pattern = "*.txt"
+        for file_path in glob.glob(pattern):
+            os.remove(file_path)
 
 
 class BLAST:
@@ -102,7 +126,6 @@ class BLAST:
         self.fasta_string = self.yaml_configuration["blast"]["fasta_query"]
         self.alignments = self.yaml_configuration["blast"]["alignments"]
 
-
         log_folder: Path = Path("log/BLAST/")
         self.blast_output_filename: Path = log_folder / f"blast_{self.alignments}.xml"
 
@@ -114,9 +137,7 @@ class BLAST:
         Number of expected results: {self.alignments}
         """)
 
-
         print("Waiting for blast query ...")
-
 
         result_stream = Blast.qblast("blastp", "nr", self.fasta_string, hitlist_size=self.alignments)
 
@@ -194,8 +215,6 @@ class BLAST:
         fout.write("idx,score\n")
 
         for idx, score in enumerate(scores):
-            fout.write(f"{idx+1},{score}\n")
-
+            fout.write(f"{idx + 1},{score}\n")
 
         fout.close()
-
