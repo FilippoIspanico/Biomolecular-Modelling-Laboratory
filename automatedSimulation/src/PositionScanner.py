@@ -11,7 +11,7 @@ import glob
 
 class PositionScanner:
 
-    def __init__(self, yaml_configuration_path: str, pdb_name: str, fasta_sequence: str, eps: float = -0.4):
+    def __init__(self, yaml_configuration_path: str, pdb_name: str, eps: float = -0.4):
 
         config_file = open(yaml_configuration_path, "r")
         self.yaml_configuration = yaml.safe_load(config_file)
@@ -24,7 +24,7 @@ class PositionScanner:
             print(f"Found foldX at the indicated directory: {self.foldX_program}")
 
         self.pdb_name: str = pdb_name
-        self.fasta_sequence: str = fasta_sequence
+
         self.temperature: int = self.yaml_configuration["foldX"]["temperature"]
 
         self.log_path: Path = Path('log/foldX/')
@@ -95,6 +95,8 @@ class PositionScanner:
         df.columns = ["mutation", "energy"]
         potential_mutations = df[df["energy"] < self.eps]
 
+        potential_mutations.to_csv('results/foldX.csv', mode='a', header=False)
+
         # first 4 char indicates the initial aminoacid
         # the last char indicates the mutation amino acid
         # the remaining part indicates the position
@@ -118,12 +120,15 @@ class PositionScanner:
 
 class BLAST:
 
-    def __init__(self, yaml_configuration_path: str):
+    def __init__(self, yaml_configuration_path: str, pdb_name: str):
 
         config_file = open(yaml_configuration_path, "r")
         self.yaml_configuration = yaml.safe_load(config_file)
 
-        self.fasta_string = self.yaml_configuration["blast"]["fasta_query"]
+
+
+        self.fasta_string: str = pdb2fasta(f"proteins/{pdb_name}.pdb")
+
         self.alignments = self.yaml_configuration["blast"]["alignments"]
 
         log_folder: Path = Path("log/BLAST/")
@@ -215,6 +220,6 @@ class BLAST:
         fout.write("idx,score\n")
 
         for idx, score in enumerate(scores):
-            fout.write(f"{idx + 1},{score}\n")
+            fout.write(f"{idx},{score}\n")
 
         fout.close()

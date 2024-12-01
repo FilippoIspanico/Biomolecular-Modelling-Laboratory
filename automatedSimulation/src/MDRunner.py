@@ -14,7 +14,7 @@ import pandas as pd
 
 class MDRunner:
 
-    def __init__(self, yaml_configuration_path: str = "config.yaml"):
+    def __init__(self, protein_name: str, yaml_configuration_path: str = "config.yaml"):
 
         try:
             config_file = open(yaml_configuration_path, "r")
@@ -26,15 +26,15 @@ class MDRunner:
         run_time = self.yaml_configuration["namd"]["run"]
         dcdfreq = self.yaml_configuration["namd"]["dcdfreq"]
         self.QValue_frame = run_time / dcdfreq
+        self.protein = protein_name
 
     def prepare_protein(self):
 
         f = open("log/prepare_protein.log", "w")
 
-        protein = self.yaml_configuration["pdb"]
 
         print("####################### Protein cleaning #######################")
-        print(f"Input pdb: {protein}")
+        print(f"Input pdb: { self.protein}")
         print("Log at: log/prepare_protein.log")
         try:
             subprocess.run(
@@ -42,7 +42,7 @@ class MDRunner:
                     "vmd",
                     "-dispdev", "text",
                     "-e", "scripts/prepare_protein.tcl",
-                    "-args", "proteins/" + protein + ".pdb"
+                    "-args", "proteins/" + self.protein + ".pdb"
                 ],
                 stdout=f
             )
@@ -271,7 +271,7 @@ class MDRunner:
             # Writing those result in a csv file along with other information
             fout = open('results/qvalues.csv', 'a')
             fout.write(
-                self.yaml_configuration["pdb"] + ',' +
+                self.protein + ',' +
                 str(self.yaml_configuration["namd"]["temperature"]) + ',' +
                 str(int(self.yaml_configuration["namd"]["run"]) * 2 / 1e6) + ',' +
                 str(qvalue) + ',' +
@@ -340,7 +340,7 @@ class MDRunner:
 
                 df = pd.read_csv('results/rmsf.csv')
 
-                run_name = (self.yaml_configuration["pdb"] + '_'
+                run_name = (self.protein + '_'
                             + str(int(self.yaml_configuration["namd"]["run"]) / 1e6 * 2) + 'ns_at_'
                             + str(self.yaml_configuration["namd"]["temperature"]) + 'K'
                             )
@@ -374,7 +374,7 @@ class MDRunner:
 
     def write_backup(self):
 
-        run_name = (self.yaml_configuration["pdb"] + '_'
+        run_name = (self.protein + '_'
                     + str(int(self.yaml_configuration["namd"]["run"]) / 1e6 * 2) + 'ns_at_'
                     + str(self.yaml_configuration["namd"]["temperature"]) + 'K'
                     )
