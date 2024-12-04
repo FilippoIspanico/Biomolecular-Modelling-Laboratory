@@ -374,7 +374,20 @@ class MDRunner:
                     + str(int(self.yaml_configuration["namd"]["run"]) / 1e6 * 2) + 'ns_at_'
                     + str(self.yaml_configuration["namd"]["temperature"]) + 'K'
                     )
+
         run_name = self.yaml_configuration["backup_folder"] + run_name
+
+
+        # if the file exist we save it as duplicate
+
+        writing_path: Path = Path(run_name)
+        if writing_path.exists():
+            i = 1
+            while Path(run_name + f"_{i}").exists():
+                i += 1
+            run_name += f"_{i}"
+
+
         print(f"Writing backup as: {run_name}")
 
         try:
