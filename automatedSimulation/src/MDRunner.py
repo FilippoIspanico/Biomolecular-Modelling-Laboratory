@@ -380,7 +380,7 @@ class MDRunner:
 
         # if the file exist we save it as duplicate
 
-        writing_path: Path = Path(run_name)
+        writing_path: Path = Path(run_name + ".psf")
         if writing_path.exists():
             i = 1
             while Path(run_name + f"_{i}").exists():
