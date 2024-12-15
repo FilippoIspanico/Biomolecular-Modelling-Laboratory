@@ -14,7 +14,7 @@ import pandas as pd
 
 class MDRunner:
 
-    def __init__(self, protein_name: str, yaml_configuration_path: str = "config.yaml"):
+    def __init__(self, protein_name: str = None, yaml_configuration_path: str = "config.yaml"):
 
         try:
             config_file = open(yaml_configuration_path, "r")
@@ -23,9 +23,9 @@ class MDRunner:
         except:
             print(f'Cannot open input file: {yaml_configuration_path}')
 
-        run_time = self.yaml_configuration["namd"]["run"]
-        dcdfreq = self.yaml_configuration["namd"]["dcdfreq"]
-        self.QValue_frame = run_time / dcdfreq
+        self.run_time = self.yaml_configuration["namd"]["run"]
+        self.dcdfreq = self.yaml_configuration["namd"]["dcdfreq"]
+        self.QValue_frame = self.run_time / self.dcdfreq
         self.protein = protein_name
 
     def prepare_protein(self):
@@ -35,6 +35,12 @@ class MDRunner:
 
         print("####################### Protein cleaning #######################")
         print(f"Input pdb: { self.protein}")
+
+        file_path = Path("proteins/" + self.protein + ".pdb")
+
+        if not file_path.is_file():
+            raise FileNotFoundError(f"The file '{file_path}' does not exist or is not a file. Cannot start MD simulation")
+
         print("Log at: log/prepare_protein.log")
         try:
             subprocess.run(
@@ -224,7 +230,7 @@ class MDRunner:
         if self.yaml_configuration["backup"]:
             self.write_backup()
 
-    def computeQValue(self, past_run: str = None, plot = False):
+    def computeQValue(self, past_run: str = None, force_write_result: bool = False):
 
         frame_arg = self.QValue_frame
 
@@ -238,6 +244,10 @@ class MDRunner:
             dcd = "simulation_output/result.dcd"
             psf = "proteins/ionized.psf"
 
+        ##################################################################
+        # We first compute RMSF
+
+        rmsf_min, rmsf_max, rmsf_mean, rmsf_std = self.compute_rmsf_statistics(past_run)
 
 
         print("\n####################### Q-VALUE #######################")
@@ -254,6 +264,7 @@ class MDRunner:
         ]
 
         try:
+
             # Run the VMD command
             subprocess.run(command, check=True, stdout=f)
 
@@ -263,35 +274,56 @@ class MDRunner:
             qvalue = df_qvalues["nc"].iloc[-1]
             fraction = df_qvalues["qnc"].iloc[-1]
 
+            if not past_run or force_write_result:
+                # Writing those result in a csv file along with other information
+                fout = open('results/qvalues.csv', 'a')
+                fout.write(
+                    self.protein   + ',' +
+                    str(self.yaml_configuration["namd"]["temperature"])        + ',' +
+                    str(int(self.yaml_configuration["namd"]["run"]) * 2 / 1e6) + ',' +
+                    str(qvalue)    + ',' +
+                    str(fraction)  + ',' +
+                    str(rmsf_min)  + ',' +
+                    str(rmsf_max)  + ',' +
+                    str(rmsf_mean) + ',' +
+                    str(rmsf_std)  + ',' + '\n'
 
-            # Writing those result in a csv file along with other information
-            fout = open('results/qvalues.csv', 'a')
-            fout.write(
-                self.protein + ',' +
-                str(self.yaml_configuration["namd"]["temperature"]) + ',' +
-                str(int(self.yaml_configuration["namd"]["run"]) * 2 / 1e6) + ',' +
-                str(qvalue) + ',' +
-                str(fraction) + '\n'
-            )
-            fout.close()
+                )
+                fout.close()
 
             print(f"Computed a Q-value    of : {qvalue}")
             print(f"Computed a Q-value(%) of : {fraction}")
             print("Log at: log/Qvalue.log and log/native_contacts.csv")
             print("Result written at: results/qvalues.csv")
 
-            if plot:
-                df = pd.read_csv('log/native_contact.csv')
-                print(df.columns)
-                plt.plot(df["qnc"])
-                plt.show()
-
+            # if plot:
+            #     df = pd.read_csv('log/native_contact.csv')
+            #     #print(df.columns)
+            #     plt.plot(df["qnc"])
+            #     plt.show()
+            #
 
             # return qvalue # if we want to use it again...
         except subprocess.CalledProcessError as e:
             print(f"An error occurred while running VMD: {e}")
 
-    def compute_rmsf(self, plot: bool = True, pastRun: str = None, scale: bool = False):
+    def compareQValue(self, past_runs: list[str], force_write_result: bool = False):
+
+        for pastRun in past_runs:
+
+            self.computeQValue(past_run=pastRun, force_write_result=force_write_result)
+            df = pd.read_csv('log/native_contact.csv')
+            num_frames = self.run_time / self.dcdfreq
+            times = self.run_time * 2/1000/1000/num_frames * np.arange(num_frames)
+            plt.plot(times, df["qnc"], label = pastRun)
+            plt.xlabel('t [ns]')
+            plt.ylabel('Q-Value (%)')
+
+        plt.title('Q-Value comparison')
+        plt.legend()
+        plt.show()
+
+    def compute_rmsf(self, pastRun: str = None):
 
         """
 
@@ -331,42 +363,45 @@ class MDRunner:
             print("RMSF computed successfully! ")
             print("You can find the result at: result/rmsf.csv")
 
-            if plot:
-
-
-                df = pd.read_csv('results/rmsf.csv')
-
-                run_name = (self.protein + '_'
-                            + str(int(self.yaml_configuration["namd"]["run"]) / 1e6 * 2) + 'ns_at_'
-                            + str(self.yaml_configuration["namd"]["temperature"]) + 'K'
-                            )
-
-                current_rmsf_name = pastRun if pastRun is not None else run_name
-
-
-                current_rmsf = np.array(df["rmsf"]).reshape(-1, 1)
-
-
-                if scale:
-                    scaler = MinMaxScaler()
-                    current_rmsf = scaler.fit_transform(current_rmsf)
-
-                plt.plot(current_rmsf)
-
-
-                plt.plot(71 * np.ones(100), np.linspace(0, 1, 100), '--')
-
-                plt.title(
-                    f'{"scaled" if scale else ""}rmsf of {current_rmsf_name}'
-                )
-
-                plt.legend(labels=['reference rmsf', f'{current_rmsf_name}', 'frequencies'])
-                plt.show()
-
-
 
         except subprocess.CalledProcessError as e:
             print(f"An error occurred while computing RMSF : {e}")
+
+    def compute_rmsf_statistics(self, pastRun: str = None):
+
+        self.compute_rmsf(pastRun)
+        df = pd.read_csv('results/rmsf.csv')
+        rmsf = df["rmsf"]
+
+
+        rmsf_min = rmsf.min()
+        rmsf_max = rmsf.max()
+        rmsf_mean = rmsf.mean()
+        rmsf_std = rmsf.std()
+
+        return rmsf_min, rmsf_max, rmsf_mean, rmsf_std
+
+    def plot_rmsf(self, past_run = None):
+
+        self.compute_rmsf(past_run)
+        df = pd.read_csv('results/rmsf.csv')
+
+
+        run_name = (self.protein + '_'
+                    + str(int(self.yaml_configuration["namd"]["run"]) / 1e6 * 2) + 'ns_at_'
+                    + str(self.yaml_configuration["namd"]["temperature"]) + 'K'
+                    )
+
+        rmsf = np.array(df["rmsf"]).reshape(-1, 1)
+
+        plt.plot(rmsf, label="rmsf")
+
+        plt.title(
+            f'rmsf of {past_run if past_run is not None else run_name}'
+        )
+
+        plt.legend()
+        plt.show()
 
     def write_backup(self):
 
@@ -413,5 +448,14 @@ class MDRunner:
         except subprocess.CalledProcessError as e:
             print(f"An error occurred while cleaning : {e}")
 
-    # def compareQValue(self, run_a: str = None, run_b: str = None):
+    def set_protein(self, protein: str):
+        self.protein = protein
+
+        file_path = Path("proteins/" + self.protein + ".pdb")
+
+        if not file_path.is_file():
+            raise FileNotFoundError(
+                f"The file '{file_path}' does not exist or is not a file. Cannot set a not-existing pdb as protein.")
+
+
 

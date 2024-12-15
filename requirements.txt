@@ -1,0 +1,6 @@
+pandas~=2.2.2
+yaml~=0.2.5
+pyyaml~=6.0.2
+numpy~=1.26.4
+scikit-learn~=1.5.1
+scipy~=1.12.0

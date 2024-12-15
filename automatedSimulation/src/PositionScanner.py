@@ -95,7 +95,7 @@ class PositionScanner:
         df.columns = ["mutation", "energy"]
         potential_mutations = df[df["energy"] < self.eps]
 
-        potential_mutations.to_csv('results/foldX.csv', mode='a', header=False)
+        potential_mutations.to_csv('results/foldX.csv')
 
         # first 4 char indicates the initial aminoacid
         # the last char indicates the mutation amino acid
