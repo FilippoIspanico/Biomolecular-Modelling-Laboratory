@@ -313,7 +313,7 @@ class MDRunner:
 
             self.computeQValue(past_run=pastRun, force_write_result=force_write_result)
             df = pd.read_csv('log/native_contact.csv')
-            num_frames = self.run_time / self.dcdfreq
+            num_frames = len(df.index)
             times = self.run_time * 2/1000/1000/num_frames * np.arange(num_frames)
             plt.plot(times, df["qnc"], label = pastRun)
             plt.xlabel('t [ns]')
@@ -418,7 +418,7 @@ class MDRunner:
         writing_path: Path = Path(run_name + ".psf")
         if writing_path.exists():
             i = 1
-            while Path(run_name + f"_{i}").exists():
+            while Path(run_name + f"_{i}" + ".psf").exists():
                 i += 1
             run_name += f"_{i}"
 
